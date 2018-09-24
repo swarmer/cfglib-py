@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""Tests for `cfglib` package."""
-
 import pytest
 
-
-from cfglib import cfglib
+import cfglib
 
 
 @pytest.fixture

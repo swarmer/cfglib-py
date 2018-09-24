@@ -4,10 +4,10 @@ cfglib package
 Submodules
 ----------
 
-cfglib.cfglib module
+cfglib.config module
 --------------------
 
-.. automodule:: cfglib.cfglib
+.. automodule:: cfglib.config
     :members:
     :undoc-members:
     :show-inheritance:
