@@ -9,6 +9,12 @@ class Config(collections.abc.Mapping):
     """An abstract configuration interface
 
     A config is really just a dict with some extra methods
+
+    In a custom implementation you need to define at least:
+    - __getitem__(item)
+    - __iter__()
+    - __len__()
+    - reload()
     """
 
     def snapshot(self) -> 'Config':
@@ -69,8 +75,9 @@ class EnvConfig(Config):
 
     @property
     def _filtered_environ(self):
+        prefix_len = len(self.prefix)
         return {
-            k: v
+            k[prefix_len:]: v
             for k, v in os.environ.items()
             if k.startswith(self.prefix)
         }
@@ -80,13 +87,18 @@ class EnvConfig(Config):
 
 
 class CompositeConfig(Config):
-    """A config backed by multiple configs"""
+    """A config backed by multiple configs
+
+    Entries are searched in subconfigs in reverse order and the first found
+    value is returned. That is, the first subconfig has the lowest priority,
+    and the last subconfig takes precedence over all others.
+    """
 
     def __init__(self, subconfigs: ty.Iterable[Config]):
         self.subconfigs = list(subconfigs)
 
     def __getitem__(self, item):
-        for subconfig in self.subconfigs:
+        for subconfig in self.subconfigs[::-1]:
             try:
                 return subconfig[item]
             except KeyError:
