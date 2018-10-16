@@ -6,4 +6,6 @@ __version__ = '0.1.1'
 
 
 from . import config
+from . import utils
+
 from .config import *

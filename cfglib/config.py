@@ -61,8 +61,9 @@ class CachingConfig(DictConfig):
 class EnvConfig(Config):
     """A config that takes its contents from the environment"""
 
-    def __init__(self, prefix=''):
+    def __init__(self, prefix='', keymap=None):
         self.prefix = prefix
+        self.keymap = keymap or (lambda x: x.lower())
 
     def __getitem__(self, item):
         return self._filtered_environ[item]
@@ -73,11 +74,18 @@ class EnvConfig(Config):
     def __len__(self):
         return len(self._filtered_environ)
 
+    def __repr__(self):
+        filtered_env = self._filtered_environ
+        return f'<EnvConfig {filtered_env}>'
+
+    def __str__(self):
+        return self.__repr__()
+
     @property
     def _filtered_environ(self):
         prefix_len = len(self.prefix)
         return {
-            k[prefix_len:]: v
+            self.keymap(k[prefix_len:]): v
             for k, v in os.environ.items()
             if k.startswith(self.prefix)
         }
@@ -111,6 +119,13 @@ class CompositeConfig(Config):
 
     def __len__(self):
         return len(self._all_keys)
+
+    def __repr__(self):
+        snapshot = self.snapshot()
+        return f'<CompositeConfig {snapshot}>'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def _all_keys(self) -> frozenset:
