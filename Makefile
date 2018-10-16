@@ -50,11 +50,17 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-lint: ## check style with flake8
-	flake8 cfglib tests
+lint: ## check style
+	pylint cfglib tests
+
+typecheck: ## typecheck python code using mypy
+	mypy --ignore-missing-imports cfglib tests
 
 test: ## run tests quickly with the default Python
 	py.test
+
+check: ## Check everything (tests, lint, types)
+	bash check.sh
 
 test-all: ## run tests on every Python version with tox
 	tox

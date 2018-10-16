@@ -2,6 +2,7 @@
 cfglib
 ======
 
+
 .. image:: https://img.shields.io/pypi/v/cfglib.svg
         :target: https://pypi.python.org/pypi/cfglib
 
@@ -11,6 +12,11 @@ cfglib
 .. image:: https://readthedocs.org/projects/cfglib/badge/?version=latest
         :target: https://cfglib.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
+
+
+.. image:: https://pyup.io/repos/github/swarmer/cfglib/shield.svg
+     :target: https://pyup.io/repos/github/swarmer/cfglib/
+     :alt: Updates
 
 
 An extensible configuration library
@@ -23,4 +29,4 @@ An extensible configuration library
 Features
 --------
 
-- TODO
+* TODO
