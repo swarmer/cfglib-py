@@ -9,7 +9,7 @@ Contents
 
    installation
    usage
-   api_docs
+   cfglib
    history
 
 

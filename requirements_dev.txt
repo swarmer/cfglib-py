@@ -6,6 +6,7 @@ pylint==2.1.1
 pytest==3.8.2
 pytest-runner==4.2
 Sphinx==1.8.1
+sphinxcontrib-apidoc==0.3.0
 sphinxcontrib-fulltoc==1.2.0
 tox==3.5.2
 twine==1.12.1

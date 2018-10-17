@@ -32,7 +32,18 @@ import cfglib
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'sphinxcontrib.fulltoc']
+extensions = [
+    'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
+    'sphinxcontrib.fulltoc', 'sphinxcontrib.apidoc',
+]
+
+# apidoc settings
+apidoc_module_dir = '../cfglib'
+apidoc_output_dir = '.'
+apidoc_excluded_paths = []
+apidoc_separate_modules = False
+apidoc_module_first = True
+apidoc_toc_file = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
