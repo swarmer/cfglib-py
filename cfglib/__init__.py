@@ -2,7 +2,7 @@
 
 __author__ = '''Anton Barkovsky'''
 __email__ = 'anton@swarmer.me'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 from . import config
