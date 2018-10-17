@@ -8,4 +8,5 @@ __version__ = '0.1.1'
 from . import config
 from . import utils
 
+# pylint: disable=wildcard-import
 from .config import *

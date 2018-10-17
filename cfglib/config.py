@@ -1,3 +1,4 @@
+# pylint: disable=too-many-ancestors
 import abc
 import collections.abc
 from itertools import chain
@@ -47,7 +48,7 @@ class DictConfig(dict, Config):
 class CachingConfig(DictConfig):
     """A config that returns data from a wrapped config, until manually reloaded"""
 
-    def __init__(self, wrapped_config: Config, *args, **kwargs):
+    def __init__(self, wrapped_config: Config, *args, **kwargs):  # type: ignore
         super().__init__(*args, **kwargs)
 
         self.wrapped_config = wrapped_config
@@ -102,7 +103,7 @@ class CompositeConfig(Config):
     and the last subconfig takes precedence over all others.
     """
 
-    def __init__(self, subconfigs: ty.Iterable[Config]):
+    def __init__(self, subconfigs: ty.Iterable[Config]):  # type: ignore
         self.subconfigs = list(subconfigs)
 
     def __getitem__(self, item):
