@@ -2,6 +2,14 @@
 Usage
 =====
 
-To use cfglib in a project::
+Example of an utility that can take settings from:
 
-    import cfglib
+* a set of default values
+* environment variables
+* config file
+* command line arguments
+
+
+.. literalinclude:: ../examples/cmdline_tool.py
+   :language: python
+   :linenos:
