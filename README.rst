@@ -11,11 +11,6 @@ cfglib
         :alt: Documentation Status
 
 
-.. image:: https://pyup.io/repos/github/swarmer/cfglib/shield.svg
-     :target: https://pyup.io/repos/github/swarmer/cfglib/
-     :alt: Updates
-
-
 An extensible configuration library
 
 
