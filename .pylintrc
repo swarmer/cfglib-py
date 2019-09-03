@@ -4,4 +4,5 @@ disable=
     fixme,
     missing-docstring,
     no-self-use,
-    too-few-public-methods
+    too-few-public-methods,
+    unnecessary-pass
