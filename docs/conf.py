@@ -36,8 +36,7 @@ extensions = [
     'sphinx.ext.autodoc', 'sphinx.ext.viewcode',
     'sphinxcontrib.fulltoc', 'sphinxcontrib.apidoc',
 ]
-
-# apidoc settings
+ # apidoc settings
 apidoc_module_dir = '../cfglib'
 apidoc_output_dir = '.'
 apidoc_excluded_paths = []
@@ -59,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'cfglib'
-copyright = u"2018, Anton Barkovsky"
+copyright = u"2019, Anton Barkovsky"
 author = u"Anton Barkovsky"
 
 # The version info for the project you're documenting, acts as replacement

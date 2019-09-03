@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "cfglib"
+version = "0.1.3"
+description = "An extensible configuration library"
+authors = ["Anton Barkovsky <anton@swarmer.me>"]
+license = "MIT license"
+packages = [
+    { include = "cfglib" },
+]
+include = ["LICENSE"]
+
+[tool.poetry.dependencies]
+python = ">=3.6,<4"
+
+[tool.poetry.dev-dependencies]
+bumpversion = "^0.5.3"
+coverage = "^4.5"
+ipython = "*"
+mypy = "^0.650.0"
+pudb = "*"
+pylint = "^2.2"
+pytest = "^4.0"
+pytest-runner = "^4.2"
+Sphinx = "^1.8"
+sphinxcontrib-apidoc = "^0.3.0"
+sphinxcontrib-fulltoc = "^1.2"
+tox = "^3.6"
+watchdog = "^0.9.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
