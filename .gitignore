@@ -91,6 +91,7 @@ venv/
 ENV/
 env2/
 env3/
+env*/
 
 # Spyder project settings
 .spyderproject
@@ -115,3 +116,5 @@ env3/
 docs/cfglib.rst
 docs/cfglib.*.rst
 docs/modules.rst
+
+poetry.lock
