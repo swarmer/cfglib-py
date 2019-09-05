@@ -3,7 +3,7 @@ import abc
 import collections.abc
 from itertools import chain
 import os
-import typing as ty
+from typing import *
 
 
 class Config(collections.abc.Mapping):
@@ -37,6 +37,7 @@ class DictConfig(dict, Config):
     """A config backed by it own dictionary stored in memory. In other words, a fancy dict."""
 
     def reload(self):
+        """Does nothing."""
         pass
 
     def replace(self, other: Config):
@@ -55,6 +56,7 @@ class CachingConfig(DictConfig):
         self.replace(self.wrapped_config)
 
     def reload(self):
+        """Refresh the underlying config and update the cache."""
         self.wrapped_config.reload()
         self.replace(self.wrapped_config)
 
@@ -92,6 +94,7 @@ class EnvConfig(Config):
         }
 
     def reload(self):
+        """Does nothing."""
         pass
 
 
@@ -103,7 +106,7 @@ class CompositeConfig(Config):
     and the last subconfig takes precedence over all others.
     """
 
-    def __init__(self, subconfigs: ty.Iterable[Config]):  # type: ignore
+    def __init__(self, subconfigs: Iterable[Config]):  # type: ignore
         self.subconfigs = list(subconfigs)
 
     def __getitem__(self, item):
@@ -125,9 +128,6 @@ class CompositeConfig(Config):
         snapshot = self.snapshot()
         return f'<CompositeConfig {snapshot}>'
 
-    def __str__(self):
-        return self.__repr__()
-
     @property
     def _all_keys(self) -> frozenset:
         all_keys = frozenset(chain.from_iterable(
@@ -137,5 +137,6 @@ class CompositeConfig(Config):
         return all_keys
 
     def reload(self):
+        """Reload subconfigs."""
         for subconfig in self.subconfigs:
             subconfig.reload()
