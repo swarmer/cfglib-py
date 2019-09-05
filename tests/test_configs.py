@@ -24,7 +24,6 @@ def test_caching_config():
 def test_composite_config():
     composite_config = cfglib.CompositeConfig([
         cfglib.DictConfig({'x': 'default'}),
-        cfglib.EnvConfig(),
         cfglib.DictConfig({'x': 'override'}),
     ])
     assert composite_config['x'] == 'override'
