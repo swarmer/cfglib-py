@@ -5,8 +5,5 @@ __email__ = 'anton@swarmer.me'
 __version__ = '0.1.3'
 
 
-from . import config
-from . import utils
-
 # pylint: disable=wildcard-import
 from .config import *
