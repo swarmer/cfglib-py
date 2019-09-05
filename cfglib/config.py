@@ -49,8 +49,8 @@ class DictConfig(dict, Config):
 class CachingConfig(DictConfig):
     """A config that returns data from a wrapped config, until manually reloaded"""
 
-    def __init__(self, wrapped_config: Config, *args, **kwargs):  # type: ignore
-        super().__init__(*args, **kwargs)
+    def __init__(self, wrapped_config: Config):  # type: ignore
+        super().__init__()
 
         self.wrapped_config = wrapped_config
         self.replace(self.wrapped_config)
