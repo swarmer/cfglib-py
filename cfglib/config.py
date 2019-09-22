@@ -5,6 +5,14 @@ from itertools import chain
 from typing import *
 
 
+__all__ = [
+    'Config',
+    'DictConfig',
+    'CachingConfig',
+    'CompositeConfig',
+]
+
+
 class Config(collections.abc.Mapping):
     """An abstract configuration interface
 
@@ -17,7 +25,7 @@ class Config(collections.abc.Mapping):
     - reload()
     """
 
-    def snapshot(self) -> 'Config':
+    def snapshot(self) -> 'DictConfig':
         """Return a copied snapshot of this config, backed by memory
         """
         return DictConfig(self)

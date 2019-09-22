@@ -10,6 +10,6 @@ Example of an utility that can take settings from:
 * command line arguments
 
 
-.. literalinclude:: ../examples/cmdline_tool.py
+.. literalinclude:: ../examples/example_tool.py
    :language: python
    :linenos:

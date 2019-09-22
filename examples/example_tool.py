@@ -15,12 +15,12 @@ def parse_config_file(config_file_path) -> cfglib.DictConfig:
         return cfglib.DictConfig(json.load(config_file))
 
 
-default_config = cfglib.DictConfig({
-    'message': 'Hello!',
-    'config_file': None,
-})
-cfg = cfglib.CompositeConfig([
-    default_config,
+class ExampleToolConfig(cfglib.SpecValidatedConfig):
+    message = cfglib.StringSetting(default='Hello!')
+    config_file = cfglib.StringSetting()
+
+
+cfg = ExampleToolConfig([
     EnvConfig(prefix='EXAMPLE_'),
 ])
 
@@ -30,12 +30,12 @@ def parse_cmdline_arguments() -> dict:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--config-file', type=str,
-        required=False, default=None,
+        required=False, default=cfglib.MISSING,
         help='Path to a json-encoded config file',
     )
     parser.add_argument(
         '--message', type=str,
-        required=False, default=None,
+        required=False, default=cfglib.MISSING,
         help='The message that will be printed',
     )
 
@@ -43,7 +43,7 @@ def parse_cmdline_arguments() -> dict:
     config_items = {
         k: v
         for k, v in parsed_args.__dict__.items()
-        if v is not None
+        if v is not cfglib.MISSING
     }
     return config_items
 
@@ -55,15 +55,16 @@ def initialize_config():
 
     if cfg.get('config_file'):
         # Load configuration from a config file, if specified
-        # Config file's priority is below that of cmdline args, so insert at position 2
-        cfg.subconfigs.insert(2, parse_config_file(cfg['config_file']))
+        # Config file's priority is below that of cmdline args, so insert at position 1
+        cfg.subconfigs.insert(1, parse_config_file(cfg['config_file']))
 
     # With the additional configuration sources injected, the end priority order
     # from lowest to highest priority is now:
-    # - defaults
     # - environment variables
     # - config file
     # - command line arguments
+
+    cfg.validate()
 
 
 def main():

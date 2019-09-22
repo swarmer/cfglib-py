@@ -1,6 +1,7 @@
 [MESSAGES CONTROL]
 disable=
     attribute-defined-outside-init,
+    bad-continuation,
     fixme,
     missing-docstring,
     no-self-use,
