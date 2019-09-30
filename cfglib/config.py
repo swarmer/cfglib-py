@@ -45,7 +45,7 @@ class MutableConfig(abc.ABC, collections.abc.MutableMapping, Config):
 
 
 class DictConfig(dict, MutableConfig):
-    """A config backed by it own dictionary stored in memory. In other words, a fancy dict."""
+    """A config backed by its own dictionary stored in memory. In other words, a fancy dict."""
 
     def reload(self):
         """Does nothing."""
@@ -55,6 +55,46 @@ class DictConfig(dict, MutableConfig):
         """Update self in place to become a shallow copy of *other*"""
         self.clear()
         self.update(other)
+
+
+class ProxyConfig(MutableConfig):
+    """A config that uses a separate mapping as source.
+
+    Unlike DictConfig, this is not by itself a dict, it only references a dict.
+
+    Althouth this class has basically zero logic, it's useful to:
+    - Wrap any mapping to conform to the Config interface
+    - Be a level of indirection to switch source configs easily by changing .source field.
+    """
+
+    def __init__(self, source: Mapping):
+        self.source = source
+
+    def __getitem__(self, key):
+        return self.source[key]
+
+    def __setitem__(self, key, value):
+        if not isinstance(self.source, MutableConfig):
+            raise TypeError('ProxyConfig\'s source is not mutable')
+
+        self.source[key] = value
+
+    def __delitem__(self, key):
+        if not isinstance(self.source, MutableConfig):
+            raise TypeError('ProxyConfig\'s source is not mutable')
+
+        del self.source[key]
+
+    def __len__(self):
+        return len(self.source)
+
+    def __iter__(self):
+        return iter(self.source)
+
+    def reload(self):
+        """Reload source if it's a Config, otherwise do nothing."""
+        if isinstance(self.source, Config):
+            self.source.reload()
 
 
 class CachingConfig(DictConfig):
