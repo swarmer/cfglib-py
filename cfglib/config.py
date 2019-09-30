@@ -40,7 +40,11 @@ class Config(collections.abc.Mapping):
         pass
 
 
-class DictConfig(dict, Config):
+class MutableConfig(abc.ABC, collections.abc.MutableMapping, Config):
+    pass
+
+
+class DictConfig(dict, MutableConfig):
     """A config backed by it own dictionary stored in memory. In other words, a fancy dict."""
 
     def reload(self):

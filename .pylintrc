@@ -1,5 +1,6 @@
 [MESSAGES CONTROL]
 disable=
+    abstract-method,
     attribute-defined-outside-init,
     bad-continuation,
     fixme,
