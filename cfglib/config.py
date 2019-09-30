@@ -7,9 +7,13 @@ from typing import *
 
 __all__ = [
     'Config',
+    'MutableConfig',
     'DictConfig',
+    'ProxyConfig',
     'CachingConfig',
     'CompositeConfig',
+    'ConfigProjection',
+    'ProjectedConfig',
 ]
 
 
