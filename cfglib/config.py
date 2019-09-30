@@ -114,3 +114,61 @@ class CompositeConfig(Config):
         """Reload subconfigs."""
         for subconfig in self.subconfigs:
             subconfig.reload()
+
+
+class ConfigProjection(abc.ABC):
+    @abc.abstractmethod
+    def is_relevant_sourcekey(self, key: str) -> bool:
+        ...
+
+    @abc.abstractmethod
+    def key_to_sourcekey(self, key: str) -> str:
+        ...
+
+    @abc.abstractmethod
+    def sourcekey_to_key(self, sourcekey: str) -> str:
+        ...
+
+
+class ProjectedConfig(MutableConfig):
+    def __init__(self, subconfig: Config, projection: ConfigProjection):
+        self.subconfig = subconfig
+        self.projection = projection
+
+    def __getitem__(self, key):
+        sourcekey = self.projection.key_to_sourcekey(key)
+        return self.subconfig[sourcekey]
+
+    def __setitem__(self, key, value):
+        if not isinstance(self.subconfig, MutableConfig):
+            raise TypeError('ProjectedConfig\'s subconfig is not mutable')
+
+        sourcekey = self.projection.key_to_sourcekey(key)
+        self.subconfig[sourcekey] = value
+
+    def __delitem__(self, key):
+        if not isinstance(self.subconfig, MutableConfig):
+            raise TypeError('ProjectedConfig\'s subconfig is not mutable')
+
+        sourcekey = self.projection.key_to_sourcekey(key)
+        del self.subconfig[sourcekey]
+
+    def __len__(self):
+        return len(list(self._relevant_sourcekeys))
+
+    def __iter__(self):
+        return (
+            self.projection.sourcekey_to_key(sourcekey)
+            for sourcekey in self._relevant_sourcekeys
+        )
+
+    @property
+    def _relevant_sourcekeys(self) -> Iterable[str]:
+        return (
+            sourcekey
+            for sourcekey in iter(self.subconfig)
+            if self.projection.is_relevant_sourcekey(sourcekey)
+        )
+
+    def reload(self):
+        self.subconfig.reload()
