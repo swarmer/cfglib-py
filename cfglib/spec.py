@@ -1,10 +1,14 @@
+import enum
 from typing import *
 
 from .config import CompositeConfig, Config
 
 
 __all__ = [
-    'MISSING', 'ERROR',
+    'MISSING',
+
+    'MissingSettingAction',
+    'ERROR', 'USE_DEFAULT', 'LEAVE',
 
     'ValidationError',
 
@@ -32,15 +36,16 @@ class MISSING:
         raise ValueError('Singleton marker classes shouldn\'t be instantiated')
 
 
-class ERROR:
-    """A singleton marker object denoting that an error should be raised
-    when a setting is absent.
+class MissingSettingAction(enum.Enum):
+    # If a setting is missing:
+    ERROR = enum.auto()  # Raise an error
+    USE_DEFAULT = enum.auto()  # Set it to the provided default
+    LEAVE = enum.auto()  # Leave as it is (missing or None)
 
-    Use the class itself, creating instances is useless.
-    """
 
-    def __new__(cls, *args, **kwargs):
-        raise ValueError('Singleton marker classes shouldn\'t be instantiated')
+ERROR = MissingSettingAction.ERROR
+USE_DEFAULT = MissingSettingAction.USE_DEFAULT
+LEAVE = MissingSettingAction.LEAVE
 
 
 # Exceptions
@@ -54,23 +59,47 @@ class Setting:
         self,
         *,
         name: str = '<unset>',
-        default: Optional[Any] = None,
+        default: Optional[Any] = MISSING,
+        on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
+        on_null: MissingSettingAction = MissingSettingAction.LEAVE,
     ):
         self.name = name
         self.default = default
+        self.on_missing = on_missing
+        self.on_null = on_null
 
     def __set_name__(self, owner, name):
         self.name = name
 
     def validate_value(self, value: Any) -> Any:
         if value is MISSING:
-            if self.default is ERROR:
+            if self.on_missing is ERROR:
                 raise ValidationError(f'Config field {self.name} missing')
+            elif self.on_missing is USE_DEFAULT:
+                if self.default is MISSING:
+                    raise ValidationError(
+                        f'Config field {self.name} missing and no default is provided'
+                    )
 
-            return self.default
+                value = self.default
+            elif self.on_missing is LEAVE:
+                value = MISSING
+            else:
+                raise ValueError(f'Invalid on_missing choice in field {self.name}')
+        elif value is None:
+            if self.on_null is ERROR:
+                raise ValidationError(f'Config field {self.name} must not be None')
+            elif self.on_null is USE_DEFAULT:
+                if self.default is MISSING:
+                    raise ValidationError(
+                        f'Config field {self.name} is None and no default is provided'
+                    )
 
-        if value is None:
-            return None
+                value = self.default
+            elif self.on_null is LEAVE:
+                value = None
+            else:
+                raise ValueError(f'Invalid on_null choice in field {self.name}')
 
         return self.validate_value_custom(value)
 

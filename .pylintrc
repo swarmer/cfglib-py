@@ -5,6 +5,7 @@ disable=
     bad-continuation,
     fixme,
     missing-docstring,
+    no-else-raise,
     no-self-use,
     too-few-public-methods,
     unnecessary-pass,
