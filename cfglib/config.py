@@ -13,6 +13,7 @@ __all__ = [
     'CachingConfig',
     'CompositeConfig',
     'ConfigProjection',
+    'BasicConfigProjection',
     'ProjectedConfig',
 ]
 
@@ -163,10 +164,21 @@ class CompositeConfig(Config):
 
 
 class ConfigProjection(abc.ABC):
-    """ABC for a projection to be passed to a `ProjectedConfig`."""
+    """ABC for a projection to be passed to a `ProjectedConfig`.
+
+    The projection should be consistent, that is:\n
+    - k2sk(sk2k(sk)) == sk for all sk that are relevant\n
+    - sk2k(k2sk(k)) == k for all k that are relevant\n
+    - is_relevant(key) <=> is_relevant_sourcekey(k2sk(k))
+    """
 
     @abc.abstractmethod
-    def is_relevant_sourcekey(self, key: str) -> bool:
+    def is_relevant_key(self, key: str) -> bool:
+        """Should a projected config key be accepted by the ProjectedConfig?"""
+        ...
+
+    @abc.abstractmethod
+    def is_relevant_sourcekey(self, sourcekey: str) -> bool:
         """Should a source config key be used by the ProjectedConfig?"""
         ...
 
@@ -181,6 +193,66 @@ class ConfigProjection(abc.ABC):
         ...
 
 
+class BasicConfigProjection(ConfigProjection):
+    """A helper to easily create a ConfigProjection"""
+
+    def __init__(
+        self,
+        is_relevant_key: Optional[Callable] = None,
+        is_relevant_sourcekey: Optional[Callable] = None,
+        key_to_sourcekey: Optional[Callable] = None,
+        sourcekey_to_key: Optional[Callable] = None
+    ):
+        if is_relevant_key:
+            self._is_relevant_key = is_relevant_key
+        else:
+            def _default_is_relevant_key(key):
+                return self.is_relevant_sourcekey(self.key_to_sourcekey(key))
+
+            self._is_relevant_key = _default_is_relevant_key
+
+        if is_relevant_sourcekey:
+            self._is_relevant_sourcekey = is_relevant_sourcekey
+        else:
+            def _default_is_relevant_sourcekey(_key):
+                return True
+
+            self._is_relevant_sourcekey = _default_is_relevant_sourcekey
+
+        if key_to_sourcekey:
+            self.key_to_sourcekey = key_to_sourcekey  # type: ignore
+
+        if sourcekey_to_key:
+            self.sourcekey_to_key = sourcekey_to_key  # type: ignore
+
+    # pylint: disable=method-hidden
+    def is_relevant_key(self, key: str) -> bool:
+        """Check that sk2k(k2sk(k)) maps key to itself and, by default,
+        compute source key and defer to is_relevant_sourcekey."""
+        if self.sourcekey_to_key(self.key_to_sourcekey(key)) != key:
+            return False
+
+        return self._is_relevant_key(key)
+
+    # pylint: disable=method-hidden
+    def is_relevant_sourcekey(self, sourcekey: str) -> bool:
+        """Check that k2sk(sk2k(sk)) maps sourcekey to itself and, by default, return True."""
+        if self.key_to_sourcekey(self.sourcekey_to_key(sourcekey)) != sourcekey:
+            return False
+
+        return self._is_relevant_sourcekey(sourcekey)
+
+    # pylint: disable=method-hidden
+    def key_to_sourcekey(self, key: str) -> str:
+        """By default, identity function."""
+        return key
+
+    # pylint: disable=method-hidden
+    def sourcekey_to_key(self, sourcekey: str) -> str:
+        """By default, identity function."""
+        return sourcekey
+
+
 class ProjectedConfig(MutableConfig):
     """Config that renames or filters source config's keys."""
 
@@ -189,6 +261,9 @@ class ProjectedConfig(MutableConfig):
         self.projection = projection
 
     def __getitem__(self, key):
+        if not self.projection.is_relevant_key(key):
+            raise KeyError(f'Key {key} not relevant')
+
         sourcekey = self.projection.key_to_sourcekey(key)
         return self.subconfig[sourcekey]
 
@@ -196,12 +271,18 @@ class ProjectedConfig(MutableConfig):
         if not isinstance(self.subconfig, MutableConfig):
             raise TypeError('ProjectedConfig\'s subconfig is not mutable')
 
+        if not self.projection.is_relevant_key(key):
+            raise KeyError(f'Key {key} not relevant')
+
         sourcekey = self.projection.key_to_sourcekey(key)
         self.subconfig[sourcekey] = value
 
     def __delitem__(self, key):
         if not isinstance(self.subconfig, MutableConfig):
             raise TypeError('ProjectedConfig\'s subconfig is not mutable')
+
+        if not self.projection.is_relevant_key(key):
+            raise KeyError(f'Key {key} not relevant')
 
         sourcekey = self.projection.key_to_sourcekey(key)
         del self.subconfig[sourcekey]
