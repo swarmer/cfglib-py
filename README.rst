@@ -21,4 +21,6 @@ An extensible configuration library
 Features
 --------
 
-* TODO
+* Describe config schema and perform validation
+* Numerous utils to compose configs from multiple sources, etc.
+* Read settings from environment

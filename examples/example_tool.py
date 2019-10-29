@@ -17,11 +17,11 @@ def parse_config_file(config_file_path) -> cfglib.DictConfig:
 
 class ExampleToolConfig(cfglib.SpecValidatedConfig):
     message = cfglib.StringSetting(default='Hello!')
-    config_file = cfglib.StringSetting()
+    config_file = cfglib.StringSetting(default=None)
 
 
 cfg = ExampleToolConfig([
-    EnvConfig(prefix='EXAMPLE_'),
+    EnvConfig(prefix='EXAMPLE_', lowercase=True),
 ])
 
 

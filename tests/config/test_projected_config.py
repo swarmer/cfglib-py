@@ -1,6 +1,7 @@
 from pytest import raises
 
 import cfglib
+from cfglib.sources.env import EnvConfigProjection
 
 
 def test_custom_projection():
@@ -82,3 +83,28 @@ def test_basic_projection():
 
     with raises(KeyError):
         projected_cfg['x'] = 8
+
+
+def test_env_projection():
+    projection = EnvConfigProjection(prefix='prefix_')
+
+    source_cfg = cfglib.DictConfig({
+        'prefix_a': 4,
+        'b': 5,
+    })
+
+    projected_cfg = cfglib.ProjectedConfig(source_cfg, projection)
+
+    assert projected_cfg['a'] == 4
+    projected_cfg['x'] = 8
+    assert projected_cfg['x'] == 8
+    assert source_cfg['prefix_x'] == 8
+
+    with raises(KeyError):
+        _ = projected_cfg['prefix_a']
+
+    with raises(KeyError):
+        _ = projected_cfg['b']
+
+    with raises(KeyError):
+        _ = projected_cfg['prefix_b']

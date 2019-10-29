@@ -101,9 +101,9 @@ class Setting:
                         f'Config field {self.name} missing and no default is provided'
                     )
 
-                value = self.default
+                return self.default
             elif self.on_missing is LEAVE:
-                value = MISSING
+                return MISSING
             else:
                 raise ValueError(f'Invalid on_missing choice in field {self.name}')
         elif value is None:
@@ -115,9 +115,9 @@ class Setting:
                         f'Config field {self.name} is None and no default is provided'
                     )
 
-                value = self.default
+                return self.default
             elif self.on_null is LEAVE:
-                value = None
+                return None
             else:
                 raise ValueError(f'Invalid on_null choice in field {self.name}')
 
@@ -255,8 +255,11 @@ class ConfigSpec:
         if extra_fields and not allow_extra:
             raise ValidationError(f'Unexpected fields in the config: {extra_fields}')
 
+        result = {}
         for setting_name in self.settings:
-            self.validate_setting(config, setting_name)
+            result[setting_name] = self.validate_setting(config, setting_name)
+
+        return result
 
 
 class SpecValidatedConfig(CompositeConfig):
@@ -301,7 +304,18 @@ class SpecValidatedConfig(CompositeConfig):
         self.SPEC.validate_config(self, self.allow_extra)
 
     def __getitem__(self, item):
-        return self.SPEC.validate_setting(self._composite_config, item)
+        value = self.SPEC.validate_setting(self._composite_config, item)
+
+        if value is MISSING:
+            raise KeyError(f'Key {item} not found')
+
+        return value
+
+    def __iter__(self):
+        return (key for key in self.SPEC.settings if self.SPEC.validate_setting(self, key))
+
+    def __len__(self):
+        return len(list(self.__iter__()))
 
     def __getattr__(self, item):
         return self.__getitem__(item)
