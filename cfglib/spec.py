@@ -57,7 +57,15 @@ class ValidationError(Exception):
 
 # Setting types
 class Setting:
-    """Specification for one config's setting."""
+    """Specification for one config's setting.
+
+    :param name: Name of the setting.
+        Only needs to be specified if passed to a ConfigSpec instead of a SpecValidatedConfig.
+    :param default: The default value to be used when source config doesn't provide
+        this setting. If the default is needed but was not specified, an error will be raised.
+    :param on_missing: Action to do if this setting is entirely absent from source configs.
+    :param on_null: Action to do if this setting is None in the source configs.
+    """
 
     def __init__(
         self,
@@ -67,14 +75,6 @@ class Setting:
         on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
         on_null: MissingSettingAction = MissingSettingAction.LEAVE,
     ):
-        """
-        :param name: Name of the setting.
-            Only needs to be specified if passed to a ConfigSpec instead of a SpecValidatedConfig.
-        :param default: The default value to be used when source config doesn't provide
-            this setting. If the default is needed but was not specified, an error will be raised.
-        :param on_missing: Action to do if this setting is entirely absent from source configs.
-        :param on_null: Action to do if this setting is None in the source configs.
-        """
         self.name = name
         self.default = default
         self.on_missing = on_missing
@@ -264,7 +264,19 @@ class ConfigSpec:
 
 class SpecValidatedConfig(CompositeConfig):
     """An all-in-one class that allows to specify settings and validate values;
-    takes an iterable of configs as its source of values."""
+    takes an iterable of configs as its source of values.
+
+    :param subconfigs: A number of source configs, from lowest priority to highest.
+    :param validate: Whether to validate the config right after initialization.
+
+    Example:
+
+    .. code-block:: python
+
+        class ExampleToolConfig(cfglib.SpecValidatedConfig):
+            message = cfglib.StringSetting(default='Hello!')
+            config_file = cfglib.StringSetting(default=None)
+    """
 
     allow_extra = False
     """Whether source configs can include extra keys not from the spec."""
@@ -285,10 +297,6 @@ class SpecValidatedConfig(CompositeConfig):
         cls.SPEC = spec
 
     def __init__(self, subconfigs: Iterable[Config], validate=True):
-        """
-        :param subconfigs: A number of source configs, from lowest priority to highest.
-        :param validate: Whether to validate the config right after initialization.
-        """
         super().__init__(subconfigs)
 
         # Store a second composite config that can be passed to spec validation
