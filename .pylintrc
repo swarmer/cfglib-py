@@ -8,6 +8,7 @@ disable=
     no-else-raise,
     no-self-use,
     too-few-public-methods,
+    too-many-ancestors,
     unnecessary-pass,
     unused-wildcard-import,
     wildcard-import

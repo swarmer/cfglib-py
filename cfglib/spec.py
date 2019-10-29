@@ -71,6 +71,12 @@ class Setting:
     def __set_name__(self, owner, name):
         self.name = name
 
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        return instance[self.name]
+
     def validate_value(self, value: Any) -> Any:
         if value is MISSING:
             if self.on_missing is ERROR:
