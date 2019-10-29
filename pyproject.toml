@@ -1,7 +1,8 @@
 [tool.poetry]
 name = "cfglib"
-version = "0.2.0a2"
+version = "0.2.0a3"
 description = "An extensible configuration library"
+readme = "README.rst"
 authors = ["Anton Barkovsky <anton@swarmer.me>"]
 license = "MIT license"
 homepage = "https://github.com/swarmer/cfglib-py"
