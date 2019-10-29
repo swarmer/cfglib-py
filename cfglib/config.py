@@ -20,13 +20,13 @@ __all__ = [
 class Config(collections.abc.Mapping):
     """An abstract configuration interface
 
-    A config is really just a dict with some extra methods
+    A config is really just a dict with some extra methods.
 
-    In a custom implementation you need to define at least:
-    - __getitem__(item)
-    - __iter__()
-    - __len__()
-    - reload()
+    In a custom implementation you need to define at least:\n
+    - __getitem__(item)\n
+    - __iter__()\n
+    - __len__()\n
+    - reload()\n
     """
 
     def snapshot(self) -> 'DictConfig':
@@ -45,6 +45,7 @@ class Config(collections.abc.Mapping):
 
 
 class MutableConfig(abc.ABC, collections.abc.MutableMapping, Config):
+    """An abstract base class for mutable configs (with __setitem__)"""
     pass
 
 
@@ -102,7 +103,8 @@ class ProxyConfig(MutableConfig):
 
 
 class CachingConfig(DictConfig):
-    """A config that returns data from a wrapped config, until manually reloaded"""
+    """A config that copies data from a wrapped config once and returns data from this copy,
+    until manually reloaded."""
 
     def __init__(self, wrapped_config: Config):  # type: ignore
         super().__init__()
@@ -161,20 +163,27 @@ class CompositeConfig(Config):
 
 
 class ConfigProjection(abc.ABC):
+    """ABC for a projection to be passed to a `ProjectedConfig`."""
+
     @abc.abstractmethod
     def is_relevant_sourcekey(self, key: str) -> bool:
+        """Should a source config key be used by the ProjectedConfig?"""
         ...
 
     @abc.abstractmethod
     def key_to_sourcekey(self, key: str) -> str:
+        """Map a ProjectedConfig's key to a source config's key"""
         ...
 
     @abc.abstractmethod
     def sourcekey_to_key(self, sourcekey: str) -> str:
+        """Map source config's key to a a ProjectedConfig's key"""
         ...
 
 
 class ProjectedConfig(MutableConfig):
+    """Config that renames or filters source config's keys."""
+
     def __init__(self, subconfig: Config, projection: ConfigProjection):
         self.subconfig = subconfig
         self.projection = projection
@@ -215,4 +224,5 @@ class ProjectedConfig(MutableConfig):
         )
 
     def reload(self):
+        """Reload the source config."""
         self.subconfig.reload()

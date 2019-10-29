@@ -1,3 +1,4 @@
+# pylint: disable=empty-docstring
 import enum
 from typing import *
 
@@ -25,22 +26,22 @@ __all__ = [
 
 
 # Markers
-class MISSING:
-    """A singleton marker object denoting that a setting value is (or should be) absent.
-    Absence here means not being in the config at all (raising KeyError on access).
-
-    Use the class itself, creating instances is useless.
-    """
-
-    def __new__(cls, *args, **kwargs):
-        raise ValueError('Singleton marker classes shouldn\'t be instantiated')
+MISSING = object()
+"""A singleton marker object denoting that a setting value is (or should be) absent.
+Absence here means not being in the config at all (raising KeyError on access)."""
 
 
 class MissingSettingAction(enum.Enum):
-    # If a setting is missing:
-    ERROR = enum.auto()  # Raise an error
-    USE_DEFAULT = enum.auto()  # Set it to the provided default
-    LEAVE = enum.auto()  # Leave as it is (missing or None)
+    """Action to do when a setting is missing"""
+
+    ERROR = enum.auto()
+    """Raise an error"""
+
+    USE_DEFAULT = enum.auto()
+    """Set it to the provided default"""
+
+    LEAVE = enum.auto()
+    """Leave as it is (missing or None)"""
 
 
 ERROR = MissingSettingAction.ERROR
@@ -50,11 +51,14 @@ LEAVE = MissingSettingAction.LEAVE
 
 # Exceptions
 class ValidationError(Exception):
+    """Raised when a setting value is not valid according to the setting parameters"""
     pass
 
 
 # Setting types
 class Setting:
+    """Specification for one config's setting."""
+
     def __init__(
         self,
         *,
@@ -63,6 +67,14 @@ class Setting:
         on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
         on_null: MissingSettingAction = MissingSettingAction.LEAVE,
     ):
+        """
+        :param name: Name of the setting.
+            Only needs to be specified if passed to a ConfigSpec instead of a SpecValidatedConfig.
+        :param default: The default value to be used when source config doesn't provide
+            this setting. If the default is needed but was not specified, an error will be raised.
+        :param on_missing: Action to do if this setting is entirely absent from source configs.
+        :param on_null: Action to do if this setting is None in the source configs.
+        """
         self.name = name
         self.default = default
         self.on_missing = on_missing
@@ -78,6 +90,8 @@ class Setting:
         return instance[self.name]
 
     def validate_value(self, value: Any) -> Any:
+        """Validate a value and return the result (with default possibly replacing null values)"""
+
         if value is MISSING:
             if self.on_missing is ERROR:
                 raise ValidationError(f'Config field {self.name} missing')
@@ -110,6 +124,7 @@ class Setting:
         return self.validate_value_custom(value)
 
     def validate_value_custom(self, value: Any) -> Any:
+        """Override this method to implement custom setting type-specific validation logic."""
         return value
 
 
@@ -122,6 +137,7 @@ class StringSetting(Setting):
         super().__init__(default=default, **kwargs)
 
     def validate_value_custom(self, value: Any) -> Optional[str]:
+        """"""  # Remove the parents docstring about overriding
         if not isinstance(value, str):
             raise ValidationError(
                 f'A value for setting {self.name} must be a string or None'
@@ -139,6 +155,7 @@ class StringListSetting(Setting):
         super().__init__(default=default, **kwargs)
 
     def validate_value_custom(self, value: Any) -> Optional[List[str]]:
+        """"""  # Remove the parents docstring about overriding
         if not isinstance(value, list):
             raise ValidationError(
                 f'A value for a setting {self.name} must be a list or None'
@@ -161,6 +178,7 @@ class BoolSetting(Setting):
         super().__init__(default=default, **kwargs)
 
     def validate_value_custom(self, value: Any) -> Optional[bool]:
+        """"""  # Remove the parents docstring about overriding
         if not isinstance(value, bool):
             raise ValidationError(f'A value for setting {self.name} must be a bool')
 
@@ -176,6 +194,7 @@ class IntSetting(Setting):
         super().__init__(default=default, **kwargs)
 
     def validate_value_custom(self, value: Any) -> Optional[int]:
+        """"""  # Remove the parents docstring about overriding
         if not isinstance(value, int):
             raise ValidationError(f'A value for setting {self.name} must be an int')
 
@@ -191,6 +210,7 @@ class FloatSetting(Setting):
         super().__init__(default=default, **kwargs)
 
     def validate_value_custom(self, value: Any) -> Optional[float]:
+        """"""  # Remove the parents docstring about overriding
         if not isinstance(value, float):
             raise ValidationError(f'A value for setting {self.name} must be a float')
 
@@ -199,6 +219,8 @@ class FloatSetting(Setting):
 
 # Spec
 class ConfigSpec:
+    """A set of settings specifying some config."""
+
     def __init__(
         self,
         settings_iterable: Iterable[Setting],
@@ -212,6 +234,8 @@ class ConfigSpec:
             raise ValueError('All settings must have unique names')
 
     def validate_setting(self, config: Config, setting_name: str):
+        """Validate one setting of a config."""
+
         try:
             setting = self.settings[setting_name]
         except KeyError as exc:
@@ -225,6 +249,8 @@ class ConfigSpec:
         return setting.validate_value(value)
 
     def validate_config(self, config: Config, allow_extra: bool = False):
+        """Validate all settings of a config."""
+
         extra_fields = frozenset(config) - frozenset(self.settings)
         if extra_fields and not allow_extra:
             raise ValidationError(f'Unexpected fields in the config: {extra_fields}')
@@ -233,9 +259,15 @@ class ConfigSpec:
             self.validate_setting(config, setting_name)
 
 
-class SpecValidatedConfig(CompositeConfig):  # pylint: disable=too-many-ancestors
+class SpecValidatedConfig(CompositeConfig):
+    """An all-in-one class that allows to specify settings and validate values;
+    takes an iterable of configs as its source of values."""
+
     allow_extra = False
+    """Whether source configs can include extra keys not from the spec."""
+
     SPEC = None
+    """ConfigSpec of this config."""
 
     def __init_subclass__(cls, **kwargs):  # pylint: disable=unused-argument
         if getattr(cls, 'SPEC', None) is not None:
@@ -250,6 +282,10 @@ class SpecValidatedConfig(CompositeConfig):  # pylint: disable=too-many-ancestor
         cls.SPEC = spec
 
     def __init__(self, subconfigs: Iterable[Config], validate=True):
+        """
+        :param subconfigs: A number of source configs, from lowest priority to highest.
+        :param validate: Whether to validate the config right after initialization.
+        """
         super().__init__(subconfigs)
 
         # Store a second composite config that can be passed to spec validation
@@ -261,6 +297,7 @@ class SpecValidatedConfig(CompositeConfig):  # pylint: disable=too-many-ancestor
             self.validate()
 
     def validate(self):
+        """Revalidate this config according to the spec."""
         self.SPEC.validate_config(self, self.allow_extra)
 
     def __getitem__(self, item):
