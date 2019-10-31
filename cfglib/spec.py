@@ -309,7 +309,7 @@ class SpecValidatedConfig(CompositeConfig):
 
     def validate(self):
         """Revalidate this config according to the spec."""
-        self.SPEC.validate_config(self, self.allow_extra)
+        self.SPEC.validate_config(self._composite_config, self.allow_extra)
 
     def __getitem__(self, item):
         value = self.SPEC.validate_setting(self._composite_config, item)
