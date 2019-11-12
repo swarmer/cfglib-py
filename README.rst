@@ -10,6 +10,9 @@ cfglib
         :target: https://cfglib.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
+.. image:: https://codecov.io/gh/swarmer/cfglib-py/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/swarmer/cfglib-py
+
 
 An extensible configuration library
 
