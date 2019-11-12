@@ -266,6 +266,9 @@ class SpecValidatedConfig(CompositeConfig):
     """An all-in-one class that allows to specify settings and validate values;
     takes an iterable of configs as its source of values.
 
+    Also defines __getattr__ so settings can be accessed as properties
+    instead of indexing.
+
     :param subconfigs: A number of source configs, from lowest priority to highest.
     :param validate: Whether to validate the config right after initialization.
 
