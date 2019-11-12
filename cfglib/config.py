@@ -42,7 +42,7 @@ class Config(collections.abc.Mapping):
         Not all configs can meaningfully reload. In this case this method will do nothing.
         Some configs always pull fresh data. In that case this method also does nothing.
         """
-        pass
+        pass  # pragma: no cover
 
 
 class MutableConfig(abc.ABC, collections.abc.MutableMapping, Config):
@@ -75,18 +75,19 @@ class ProxyConfig(MutableConfig):
 
     def __init__(self, source: Mapping):
         self.source = source
+        self._mutable = isinstance(source, collections.abc.MutableMapping)
 
     def __getitem__(self, key):
         return self.source[key]
 
     def __setitem__(self, key, value):
-        if not isinstance(self.source, MutableConfig):
+        if not self._mutable:
             raise TypeError('ProxyConfig\'s source is not mutable')
 
         self.source[key] = value
 
     def __delitem__(self, key):
-        if not isinstance(self.source, MutableConfig):
+        if not self._mutable:
             raise TypeError('ProxyConfig\'s source is not mutable')
 
         del self.source[key]
@@ -163,7 +164,7 @@ class CompositeConfig(Config):
             subconfig.reload()
 
 
-class ConfigProjection(abc.ABC):
+class ConfigProjection(abc.ABC):  # pragma: no cover
     """ABC for a projection to be passed to a `ProjectedConfig`.
 
     The projection should be consistent, that is:\n

@@ -3,6 +3,7 @@ disable=
     abstract-method,
     attribute-defined-outside-init,
     bad-continuation,
+    duplicate-code,
     fixme,
     missing-docstring,
     no-else-raise,
