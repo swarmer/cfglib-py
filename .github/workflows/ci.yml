@@ -31,6 +31,7 @@ jobs:
       run: |
         poetry run env TERM=xterm make coverage
 
-    - name: Send code coverage
-      run: |
-        poetry run bash -c 'pip install codecov && codecov'
+    - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1.0.3
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
