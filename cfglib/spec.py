@@ -70,7 +70,7 @@ class Setting:
     def __init__(
         self,
         *,
-        name: str = '<unset>',
+        name: Optional[str] = None,
         default: Optional[Any] = MISSING,
         on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
         on_null: MissingSettingAction = MissingSettingAction.LEAVE,
@@ -81,6 +81,9 @@ class Setting:
         self.on_null = on_null
 
     def __set_name__(self, owner, name):
+        if self.name is not None and self.name != name:
+            raise ValueError(f'Setting name already set to {self.name}')
+
         self.name = name
 
     def __get__(self, instance, owner):
@@ -226,10 +229,13 @@ class ConfigSpec:
         settings_iterable: Iterable[Setting],
     ):
         settings_list = list(settings_iterable)
-        self.settings = {
-            setting.name: setting
-            for setting in settings_list
-        }
+        self.settings: Dict[str, Setting] = {}
+        for setting in settings_list:
+            if setting.name is None:
+                raise ValueError(f'Setting name not set for {setting}')
+
+            self.settings[setting.name] = setting
+
         if len(self.settings) != len(settings_list):
             raise ValueError('All settings must have unique names')
 
@@ -239,7 +245,7 @@ class ConfigSpec:
         try:
             setting = self.settings[setting_name]
         except KeyError as exc:
-            raise ValueError(f'Unknown setting, not in config spec: {setting_name}') from exc
+            raise KeyError(f'Unknown setting, not in config spec: {setting_name}') from exc
 
         try:
             value = config[setting_name]
@@ -284,18 +290,26 @@ class SpecValidatedConfig(CompositeConfig):
     allow_extra = False
     """Whether source configs can include extra keys not from the spec."""
 
-    SPEC = None
+    SPEC: Optional[ConfigSpec] = None
     """ConfigSpec of this config."""
 
     def __init_subclass__(cls, **kwargs):  # pylint: disable=unused-argument
         if getattr(cls, 'SPEC', None) is not None:
             return
 
-        settings = [
-            attr
-            for attr in cls.__dict__.values()
-            if isinstance(attr, Setting)
-        ]
+        settings = []
+        for name, setting in cls.__dict__.items():
+            if not isinstance(setting, Setting):
+                continue
+
+            if name != setting.name:
+                raise ValueError(
+                    f'Mismatch between setting\'s attribute {name}'
+                    f' and its name {setting.name}'
+                )
+
+            settings.append(setting)
+
         spec = ConfigSpec(settings)
         cls.SPEC = spec
 
@@ -329,7 +343,10 @@ class SpecValidatedConfig(CompositeConfig):
         return len(list(self.__iter__()))
 
     def __getattr__(self, item):
-        return self.__getitem__(item)
+        try:
+            return self.__getitem__(item)
+        except KeyError as exc:
+            raise AttributeError(*exc.args)
 
     def __repr__(self):
         snapshot = self.snapshot()
