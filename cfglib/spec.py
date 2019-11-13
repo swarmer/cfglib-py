@@ -19,16 +19,26 @@ __all__ = [
     'BoolSetting',
     'IntSetting',
     'FloatSetting',
+    'DictSetting',
+    'ListSetting',
 
     'ConfigSpec',
     'SpecValidatedConfig',
 ]
 
 
+class Marker:
+    pass
+
+
 # Markers
-MISSING = object()
+MISSING = Marker()
 """A singleton marker object denoting that a setting value is (or should be) absent.
 Absence here means not being in the config at all (raising KeyError on access)."""
+
+
+T = TypeVar('T')  # pylint: disable=invalid-name
+ExtOptional = Union[Marker, None, T]
 
 
 class MissingSettingAction(enum.Enum):
@@ -71,7 +81,7 @@ class Setting:
         self,
         *,
         name: Optional[str] = None,
-        default: Optional[Any] = MISSING,
+        default: ExtOptional[Any] = MISSING,
         on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
         on_null: MissingSettingAction = MissingSettingAction.LEAVE,
     ):
@@ -134,7 +144,8 @@ class Setting:
 class StringSetting(Setting):
     def __init__(
         self,
-        default: Optional[str] = None,
+        *,
+        default: ExtOptional[str] = MISSING,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
@@ -152,7 +163,8 @@ class StringSetting(Setting):
 class StringListSetting(Setting):
     def __init__(
         self,
-        default: Optional[List[str]] = None,
+        *,
+        default: ExtOptional[List[str]] = MISSING,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
@@ -175,7 +187,8 @@ class StringListSetting(Setting):
 class BoolSetting(Setting):
     def __init__(
         self,
-        default: Optional[bool] = None,
+        *,
+        default: ExtOptional[bool] = MISSING,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
@@ -191,7 +204,8 @@ class BoolSetting(Setting):
 class IntSetting(Setting):
     def __init__(
         self,
-        default: Optional[int] = None,
+        *,
+        default: ExtOptional[int] = MISSING,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
@@ -207,7 +221,8 @@ class IntSetting(Setting):
 class FloatSetting(Setting):
     def __init__(
         self,
-        default: Optional[float] = None,
+        *,
+        default: ExtOptional[float] = MISSING,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
@@ -216,6 +231,61 @@ class FloatSetting(Setting):
         """"""  # Remove the parents docstring about overriding
         if not isinstance(value, float):
             raise ValidationError(f'A value for setting {self.name} must be a float')
+
+        return value
+
+
+class DictSetting(Setting):
+    def __init__(
+        self,
+        *,
+        default: ExtOptional[Mapping] = MISSING,
+        **kwargs,
+    ):
+        super().__init__(default=default, **kwargs)
+
+    def validate_value_custom(self, value: Any) -> Optional[Mapping]:
+        """"""  # Remove the parent's docstring about overriding
+        if not isinstance(value, Mapping):
+            raise ValidationError(f'A value for setting {self.name} must be a mapping')
+
+        return value
+
+
+class ListSetting(Setting):
+    def __init__(
+        self,
+        *,
+        default: ExtOptional[List[Any]] = MISSING,
+        on_empty: MissingSettingAction = MissingSettingAction.LEAVE,
+        **kwargs,
+    ):
+        super().__init__(default=default, **kwargs)
+
+        self.on_empty = on_empty
+
+    # noinspection DuplicatedCode
+    def validate_value_custom(self, value: Any) -> ExtOptional[List[Any]]:
+        """"""  # Remove the parents docstring about overriding
+        if not isinstance(value, list):
+            raise ValidationError(
+                f'A value for a setting {self.name} must be a list or None'
+            )
+
+        if not value:
+            if self.on_empty is ERROR:
+                raise ValidationError(f'Config field {self.name} is empty')
+            elif self.on_empty is USE_DEFAULT:
+                if self.default is MISSING:
+                    raise ValidationError(
+                        f'Config field {self.name} empty and no default is provided'
+                    )
+
+                return self.default
+            elif self.on_empty is LEAVE:
+                return value
+            else:
+                raise ValueError(f'Invalid on_empty choice in field {self.name}')
 
         return value
 
@@ -290,7 +360,7 @@ class SpecValidatedConfig(CompositeConfig):
     allow_extra = False
     """Whether source configs can include extra keys not from the spec."""
 
-    SPEC: Optional[ConfigSpec] = None
+    SPEC: ExtOptional[ConfigSpec] = None
     """ConfigSpec of this config."""
 
     def __init_subclass__(cls, **kwargs):  # pylint: disable=unused-argument

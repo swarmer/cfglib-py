@@ -62,6 +62,44 @@ def test_spec_validated_config():
         _ = TestConfig([cfglib.DictConfig({**valid_data, 'floating': 0})])
 
 
+def test_defaults():
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.StringSetting(name='x'),
+            {},
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.BoolSetting(name='x'),
+            {},
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.IntSetting(name='x'),
+            {},
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.FloatSetting(name='x'),
+            {},
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='x'),
+            {},
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x'),
+            {},
+        )
+
+
 def test_on_missing_handlers():
     with pytest.raises(ValueError):
         cfg = _one_field_cfg(
