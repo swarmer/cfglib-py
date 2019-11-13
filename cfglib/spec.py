@@ -272,11 +272,13 @@ class ListSetting(Setting):
         *,
         default: ExtOptional[List[Any]] = MISSING,
         on_empty: MissingSettingAction = MissingSettingAction.LEAVE,
+        subsetting: Optional[Setting] = None,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
 
         self.on_empty = on_empty
+        self.subsetting = subsetting
 
     # noinspection DuplicatedCode
     def validate_value_custom(self, value: Any) -> ExtOptional[List[Any]]:
@@ -300,6 +302,12 @@ class ListSetting(Setting):
                 return value
             else:
                 raise ValueError(f'Invalid on_empty choice in field {self.name}')
+
+        if self.subsetting:
+            value = [
+                self.subsetting.validate_value(item)
+                for item in value
+            ]
 
         return value
 

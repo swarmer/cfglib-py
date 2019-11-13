@@ -112,12 +112,71 @@ def test_list_settings():
         )
 
 
+def test_list_validation():
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting()),
+            {'x': ['string']}
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting()),
+            {'x': [{}]}
+        )
+
+    cfg = _one_field_cfg(
+        cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting()),
+        {'x': [1]}
+    )
+    assert cfg.x == [1]
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting(on_null=cfglib.USE_DEFAULT)),
+            {'x': [None]}
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting(on_null=cfglib.ERROR)),
+            {'x': [5, None, 7]}
+        )
+
+    cfg = _one_field_cfg(
+        cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting(default=6)),
+        {'x': [5, None, 7]}
+    )
+    assert cfg.x == [5, None, 7]
+
+    cfg = _one_field_cfg(
+        cfglib.ListSetting(
+            name='x',
+            subsetting=cfglib.IntSetting(default=6, on_null=cfglib.USE_DEFAULT),
+        ),
+        {'x': [5, None, 7]}
+    )
+    assert cfg.x == [5, 6, 7]
+
+    cfg = _one_field_cfg(
+        cfglib.ListSetting(name='x', subsetting=cfglib.IntSetting(on_null=cfglib.LEAVE)),
+        {'x': [5, None, 7]}
+    )
+    assert cfg.x == [5, None, 7]
+
+
 def test_list_on_empty():
     cfg = _one_field_cfg(
         cfglib.ListSetting(name='x'),
         {'x': []}
     )
     assert cfg.x == []
+
+    with pytest.raises(ValueError):
+        _ = _one_field_cfg(
+            cfglib.ListSetting(name='x', on_empty='qwerty'),
+            {'x': []}
+        )
 
     with pytest.raises(cfglib.ValidationError):
         _ = _one_field_cfg(
