@@ -17,7 +17,7 @@ def test_spec_validated_config():
         allow_extra = False
 
         string = cfglib.StringSetting(default=None)
-        string_list = cfglib.StringListSetting(default=None)
+        string_list = cfglib.ListSetting(subsetting=cfglib.StringSetting(), default=None)
         boolean = cfglib.BoolSetting(default=None)
         integer = cfglib.IntSetting(default=None)
         floating = cfglib.FloatSetting(default=None)

@@ -17,7 +17,6 @@ __all__ = [
 
     'Setting',
     'StringSetting',
-    'StringListSetting',
     'BoolSetting',
     'IntSetting',
     'FloatSetting',
@@ -157,30 +156,6 @@ class StringSetting(Setting):
         if not isinstance(value, str):
             raise ValidationError(
                 f'A value for setting {self.name} must be a string or None'
-            )
-
-        return value
-
-
-class StringListSetting(Setting):
-    def __init__(
-        self,
-        *,
-        default: ExtOptional[List[str]] = MISSING,
-        **kwargs,
-    ):
-        super().__init__(default=default, **kwargs)
-
-    def validate_value_custom(self, value: Any) -> Optional[List[str]]:
-        """"""  # Remove the parents docstring about overriding
-        if not isinstance(value, list):
-            raise ValidationError(
-                f'A value for a setting {self.name} must be a list or None'
-            )
-
-        if any(not isinstance(item, str) for item in value):
-            raise ValidationError(
-                f'All items in a setting {self.name} must strings'
             )
 
         return value
