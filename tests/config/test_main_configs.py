@@ -90,3 +90,13 @@ def test_composite_config():
     assert len(composite_config) == 3
 
     assert 'CompositeConfig' in repr(composite_config)
+
+
+def test_to_cfg():
+    assert cfglib.to_cfg({}) == {}
+    assert isinstance(cfglib.to_cfg({}), cfglib.ProxyConfig)
+
+    assert isinstance(cfglib.to_cfg(cfglib.DictConfig()), cfglib.DictConfig)
+
+    with raises(TypeError):
+        cfglib.to_cfg(5)
