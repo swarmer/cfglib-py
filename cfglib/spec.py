@@ -1,8 +1,10 @@
 # pylint: disable=empty-docstring
+from __future__ import annotations
+
 import enum
 from typing import *
 
-from .config import CompositeConfig, Config
+from .config import CompositeConfig, Config, DictConfig
 
 
 __all__ = [
@@ -240,14 +242,26 @@ class DictSetting(Setting):
         self,
         *,
         default: ExtOptional[Mapping] = MISSING,
+        subtype: Union[ConfigSpec, Type[SpecValidatedConfig], None] = None,
         **kwargs,
     ):
         super().__init__(default=default, **kwargs)
+
+        self.subtype = subtype
 
     def validate_value_custom(self, value: Any) -> Optional[Mapping]:
         """"""  # Remove the parent's docstring about overriding
         if not isinstance(value, Mapping):
             raise ValidationError(f'A value for setting {self.name} must be a mapping')
+
+        if isinstance(self.subtype, ConfigSpec):
+            value = self.subtype.validate_config(DictConfig(value))
+        elif isinstance(self.subtype, type) and issubclass(self.subtype, SpecValidatedConfig):
+            value = self.subtype([DictConfig(value)])
+        elif self.subtype is None:
+            pass
+        else:
+            raise ValueError(f'Invalid type in field {self.name}')
 
         return value
 
@@ -297,6 +311,7 @@ class ConfigSpec:
     def __init__(
         self,
         settings_iterable: Iterable[Setting],
+        allow_extra: bool = False,
     ):
         settings_list = list(settings_iterable)
         self.settings: Dict[str, Setting] = {}
@@ -308,6 +323,8 @@ class ConfigSpec:
 
         if len(self.settings) != len(settings_list):
             raise ValueError('All settings must have unique names')
+
+        self.allow_extra = allow_extra
 
     def validate_setting(self, config: Config, setting_name: str):
         """Validate one setting of a config."""
@@ -324,11 +341,11 @@ class ConfigSpec:
 
         return setting.validate_value(value)
 
-    def validate_config(self, config: Config, allow_extra: bool = False):
+    def validate_config(self, config: Config):
         """Validate all settings of a config."""
 
         extra_fields = frozenset(config) - frozenset(self.settings)
-        if extra_fields and not allow_extra:
+        if extra_fields and not self.allow_extra:
             raise ValidationError(f'Unexpected fields in the config: {extra_fields}')
 
         result = {}
@@ -382,7 +399,7 @@ class SpecValidatedConfig(CompositeConfig):
 
             settings.append(setting)
 
-        spec = ConfigSpec(settings)
+        spec = ConfigSpec(settings, allow_extra=cls.allow_extra)
         cls.SPEC = spec
 
     def __init__(self, subconfigs: Iterable[Config], validate=True):
@@ -398,7 +415,7 @@ class SpecValidatedConfig(CompositeConfig):
 
     def validate(self):
         """Revalidate this config according to the spec."""
-        self.SPEC.validate_config(self._composite_config, self.allow_extra)
+        self.SPEC.validate_config(self._composite_config)
 
     def __getitem__(self, item):
         value = self.SPEC.validate_setting(self._composite_config, item)

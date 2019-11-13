@@ -32,6 +32,66 @@ def test_dict_settings():
         )
 
 
+def test_dict_validation():
+    class DictType(cfglib.SpecValidatedConfig):
+        x = cfglib.IntSetting()
+        y = cfglib.StringSetting(default='def')
+
+    with pytest.raises(ValueError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='d', subtype=5),
+            {'d': {}}
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='d', subtype=DictType),
+            {'d': {}}
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='d', subtype=DictType.SPEC),
+            {'d': {}}
+        )
+
+    cfg = _one_field_cfg(
+        cfglib.DictSetting(name='d', subtype=DictType),
+        {'d': {'x': 1, 'y': 'yval'}}
+    )
+    assert cfg.d == DictType([cfglib.DictConfig({'x': 1, 'y': 'yval'})])
+
+    cfg = _one_field_cfg(
+        cfglib.DictSetting(name='d', subtype=DictType.SPEC),
+        {'d': {'x': 1, 'y': 'yval'}}
+    )
+    assert cfg.d == {'x': 1, 'y': 'yval'}
+
+    cfg = _one_field_cfg(
+        cfglib.DictSetting(name='d', subtype=DictType),
+        {'d': {'x': 1}}
+    )
+    assert cfg.d == DictType([cfglib.DictConfig({'x': 1, 'y': 'def'})])
+
+    cfg = _one_field_cfg(
+        cfglib.DictSetting(name='d', subtype=DictType.SPEC),
+        {'d': {'x': 1}}
+    )
+    assert cfg.d == {'x': 1, 'y': 'def'}
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='d', subtype=DictType),
+            {'d': {'x': 1, 'y': 'yval', 'additional': True}}
+        )
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = _one_field_cfg(
+            cfglib.DictSetting(name='d', subtype=DictType.SPEC),
+            {'d': {'x': 1, 'y': 'yval', 'additional': True}}
+        )
+
+
 def test_list_settings():
     cfg = _one_field_cfg(
         cfglib.ListSetting(name='x'),

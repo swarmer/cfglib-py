@@ -338,6 +338,12 @@ def test_extra_values_disallowed():
     with pytest.raises(cfglib.ValidationError):
         _ = TestConfig([cfglib.DictConfig({'X': 'x_value', 'Y': 6})])
 
+    class DefaultTestConfig(cfglib.SpecValidatedConfig):
+        X = cfglib.StringSetting()
+
+    with pytest.raises(cfglib.ValidationError):
+        _ = DefaultTestConfig([cfglib.DictConfig({'X': 'x_value', 'Y': 6})])
+
 
 def test_cfg_with_settings_attributes():
     class TestConfig(cfglib.SpecValidatedConfig):
