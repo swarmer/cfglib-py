@@ -1,4 +1,6 @@
 # pylint: disable=too-many-ancestors
+from __future__ import annotations
+
 import abc
 import collections.abc
 from itertools import chain
@@ -15,7 +17,25 @@ __all__ = [
     'ConfigProjection',
     'BasicConfigProjection',
     'ProjectedConfig',
+    'to_cfg',
+    'to_cfg_list',
 ]
+
+
+def to_cfg(value: Any) -> Config:
+    if isinstance(value, Config):
+        return value
+    elif isinstance(value, Mapping):
+        return ProxyConfig(value)
+    else:
+        raise TypeError(f'Cannot convert to config: {value}')
+
+
+def to_cfg_list(value: Any) -> List[Config]:
+    if not isinstance(value, collections.abc.Collection) or isinstance(value, Mapping):
+        value = [value]
+
+    return [to_cfg(item) for item in value]
 
 
 class Config(collections.abc.Mapping):

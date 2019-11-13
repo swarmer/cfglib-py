@@ -4,7 +4,7 @@ from __future__ import annotations
 import enum
 from typing import *
 
-from .config import CompositeConfig, Config, DictConfig
+from .config import CompositeConfig, Config, DictConfig, to_cfg_list
 
 
 __all__ = [
@@ -385,8 +385,12 @@ class SpecValidatedConfig(CompositeConfig):
         spec = ConfigSpec(settings, allow_extra=cls.allow_extra)
         cls.SPEC = spec
 
-    def __init__(self, subconfigs: Iterable[Config], validate=True):
-        super().__init__(subconfigs)
+    def __init__(
+        self,
+        subconfigs: Union[Mapping, Iterable[Mapping]],
+        validate=True,
+    ):
+        super().__init__(to_cfg_list(subconfigs))
 
         # Store a second composite config that can be passed to spec validation
         # as a plain ordinary config

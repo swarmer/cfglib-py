@@ -61,6 +61,9 @@ def test_spec_validated_config():
     with pytest.raises(cfglib.ValidationError):
         _ = TestConfig([cfglib.DictConfig({**valid_data, 'floating': 0})])
 
+    cfg = TestConfig(valid_data)
+    assert cfg.snapshot() == valid_data
+
 
 def test_defaults():
     with pytest.raises(cfglib.ValidationError):
