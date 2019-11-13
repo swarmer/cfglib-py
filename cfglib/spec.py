@@ -294,6 +294,8 @@ class SpecValidatedConfig(CompositeConfig):
     """ConfigSpec of this config."""
 
     def __init_subclass__(cls, **kwargs):  # pylint: disable=unused-argument
+        super().__init_subclass__(**kwargs)
+
         if getattr(cls, 'SPEC', None) is not None:
             return
 

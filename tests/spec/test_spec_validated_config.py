@@ -4,7 +4,7 @@ import cfglib
 
 
 def _one_field_cfg(setting: cfglib.Setting, data: dict) -> cfglib.SpecValidatedConfig:
-    class _Config(cfglib.SpecValidatedConfig):
+    class _Config(cfglib.SpecValidatedConfig):  # type: ignore
         allow_extra = False
 
         SPEC = cfglib.ConfigSpec([setting])
