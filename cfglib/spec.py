@@ -29,7 +29,11 @@ __all__ = [
 
 
 class Marker:
-    pass
+    def __repr__(self):
+        if self is MISSING:
+            return 'MISSING'
+        else:
+            return super().__repr__()  # pragma: no cover
 
 
 # Markers

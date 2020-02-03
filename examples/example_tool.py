@@ -3,6 +3,7 @@ import json
 import sys
 
 import cfglib
+from cfglib.sources.args import ArgsNamespaceConfig
 from cfglib.sources.env import EnvConfig
 
 
@@ -10,23 +11,24 @@ from cfglib.sources.env import EnvConfig
 # These will normally be in a separate module,
 # to be imported by the rest of the project like:
 # from xyz.config import cfg
-def parse_config_file(config_file_path) -> cfglib.DictConfig:
+def parse_config_file(config_file_path) -> cfglib.Config:
     with open(config_file_path) as config_file:
-        return cfglib.DictConfig(json.load(config_file))
+        file_config = cfglib.DictConfig(json.load(config_file))
+        return cfglib.ProjectedConfig(file_config, cfglib.UPPERCASE_PROJECTION)
 
 
 class ExampleToolConfig(cfglib.SpecValidatedConfig):
-    message = cfglib.StringSetting(default='Hello!')
-    config_file = cfglib.StringSetting(default=None)
+    MESSAGE = cfglib.StringSetting(default='Hello!')
+    CONFIG_FILE = cfglib.StringSetting(default=None)
 
 
 cfg = ExampleToolConfig([
-    EnvConfig(prefix='EXAMPLE_', lowercase=True),
+    EnvConfig(prefix='EXAMPLE_', lowercase=False),
 ])
 
 
 # Main program
-def parse_cmdline_arguments() -> dict:
+def parse_cmdline_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--config-file', type=str,
@@ -39,17 +41,14 @@ def parse_cmdline_arguments() -> dict:
         help='The message that will be printed',
     )
 
-    parsed_args = parser.parse_args()
-    config_items = {
-        k: v
-        for k, v in parsed_args.__dict__.items()
-        if v is not cfglib.MISSING
-    }
-    return config_items
+    return parser.parse_args()
 
 
 def initialize_config():
-    cmdline_config = cfglib.DictConfig(parse_cmdline_arguments())
+    cmdline_config = ArgsNamespaceConfig(
+        parse_cmdline_arguments(),
+        uppercase=True,
+    )
     # Command line arguments shoule be highest priority, so append them to the end
     cfg.subconfigs.append(cmdline_config)
 
@@ -71,7 +70,7 @@ def main():
     initialize_config()
     print(f'Config: {cfg}', file=sys.stderr)
 
-    message = cfg['message']
+    message = cfg.MESSAGE
     print(message)
 
 

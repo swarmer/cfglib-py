@@ -16,6 +16,8 @@ __all__ = [
     'CompositeConfig',
     'ConfigProjection',
     'BasicConfigProjection',
+    'LOWERCASE_PROJECTION',
+    'UPPERCASE_PROJECTION',
     'ProjectedConfig',
     'to_cfg',
     'to_cfg_list',
@@ -272,6 +274,17 @@ class BasicConfigProjection(ConfigProjection):
     def sourcekey_to_key(self, sourcekey: str) -> str:
         """By default, identity function."""
         return sourcekey
+
+
+LOWERCASE_PROJECTION = BasicConfigProjection(
+    key_to_sourcekey=lambda k: k.upper(),
+    sourcekey_to_key=lambda sk: sk.lower(),
+)
+
+UPPERCASE_PROJECTION = BasicConfigProjection(
+    key_to_sourcekey=lambda k: k.lower(),
+    sourcekey_to_key=lambda sk: sk.upper(),
+)
 
 
 class ProjectedConfig(MutableConfig):

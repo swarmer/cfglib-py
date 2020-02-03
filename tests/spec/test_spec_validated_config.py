@@ -12,6 +12,10 @@ def _one_field_cfg(setting: cfglib.Setting, data: dict) -> cfglib.SpecValidatedC
     return _Config([cfglib.DictConfig(data)])
 
 
+def test_missing_repr():
+    assert repr(cfglib.MISSING) == str(cfglib.MISSING) == 'MISSING'
+
+
 def test_spec_validated_config():
     class TestConfig(cfglib.SpecValidatedConfig):
         allow_extra = False

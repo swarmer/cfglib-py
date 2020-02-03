@@ -6,7 +6,12 @@ def test_example_tool_basic():
 
 
 def test_example_tool_message():
-    subprocess.run(['python', '-m', 'examples.example_tool', '--message', 'HI'], check=True)
+    result = subprocess.run(
+        ['python', '-m', 'examples.example_tool', '--message', 'HI'],
+        capture_output=True,
+        check=True,
+    )
+    assert b'HI' in result.stdout
 
 
 def test_example_tool_config_file():
