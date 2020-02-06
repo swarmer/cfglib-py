@@ -6,6 +6,10 @@ cfglib
 .. image:: https://img.shields.io/pypi/v/cfglib.svg
         :target: https://pypi.python.org/pypi/cfglib
 
+.. image:: https://github.com/swarmer/cfglib-py/workflows/CI/badge.svg
+        :target: https://github.com/swarmer/cfglib-py/actions
+        :alt: CI Status
+
 .. image:: https://readthedocs.org/projects/cfglib/badge/?version=latest
         :target: https://cfglib.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
