@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cfglib"
-version = "1.0.0"
+version = "1.0.1"
 description = "An extensible configuration library"
 readme = "README.rst"
 authors = ["Anton Barkovsky <anton@swarmer.me>"]
