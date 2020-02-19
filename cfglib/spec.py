@@ -333,7 +333,10 @@ class ConfigSpec:
 
         extra_fields = frozenset(config) - frozenset(self.settings)
         if extra_fields and not self.allow_extra:
-            raise ValidationError(f'Unexpected fields in the config: {extra_fields}')
+            raise ValidationError(
+                f'Unexpected fields in the config: '
+                f'{",".join(extra_fields)}'
+            )
 
         result = {}
         for setting_name in self.settings:
