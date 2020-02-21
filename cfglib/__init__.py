@@ -6,7 +6,7 @@ e.g. `cfglib.Config`.
 
 __author__ = '''Anton Barkovsky'''
 __email__ = 'anton@swarmer.me'
-__version__ = '1.0.1'
+__version__ = '1.1.0a1'
 
 
 # pylint: disable=wildcard-import
