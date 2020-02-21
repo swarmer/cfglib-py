@@ -5,15 +5,13 @@ import enum
 from typing import *
 
 from .config import CompositeConfig, Config, DictConfig, to_cfg_list
-
+from .validation import Validator, ValidationContext, ValidationError
 
 __all__ = [
     'MISSING',
 
     'MissingSettingAction',
     'ERROR', 'USE_DEFAULT', 'LEAVE',
-
-    'ValidationError',
 
     'Setting',
     'StringSetting',
@@ -64,12 +62,6 @@ USE_DEFAULT = MissingSettingAction.USE_DEFAULT
 LEAVE = MissingSettingAction.LEAVE
 
 
-# Exceptions
-class ValidationError(Exception):
-    """Raised when a setting value is not valid according to the setting parameters"""
-    pass
-
-
 # Setting types
 class Setting:
     """Specification for one config's setting.
@@ -89,11 +81,13 @@ class Setting:
         default: ExtOptional[Any] = MISSING,
         on_missing: MissingSettingAction = MissingSettingAction.USE_DEFAULT,
         on_null: MissingSettingAction = MissingSettingAction.LEAVE,
+        validators: Optional[Iterable[Validator]] = None,
     ):
         self.name = name
         self.default = default
         self.on_missing = on_missing
         self.on_null = on_null
+        self.validators = list(validators or [])
 
     def __set_name__(self, owner, name):
         if self.name is not None and self.name != name:
@@ -139,7 +133,16 @@ class Setting:
             else:
                 raise ValueError(f'Invalid on_null choice in field {self.name}')
 
-        return self.validate_value_custom(value)
+        value = self.validate_value_custom(value)
+        value = self.apply_validators(value)
+        return value
+
+    def apply_validators(self, value: Any) -> Any:
+        ctx = ValidationContext(self.name)
+        for validator in self.validators:
+            value = validator(ctx, value)
+
+        return value
 
     def validate_value_custom(self, value: Any) -> Any:
         """Override this method to implement custom setting type-specific validation logic."""
