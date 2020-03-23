@@ -336,6 +336,17 @@ def test_extra_values_allowed():
     cfg.validate()
 
 
+def test_false_keys_preserved():
+    class TestConfig(cfglib.SpecValidatedConfig):
+        X = cfglib.StringSetting()
+        Y = cfglib.StringSetting()
+        Z = cfglib.BoolSetting()
+
+    cfg = TestConfig({'X': 'x_value', 'Y': '', 'Z': False})
+
+    assert set(cfg.keys()) == set(cfg) == {'X', 'Y', 'Z'}
+
+
 def test_extra_values_disallowed():
     class TestConfig(cfglib.SpecValidatedConfig):
         allow_extra = False

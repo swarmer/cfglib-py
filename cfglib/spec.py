@@ -423,7 +423,7 @@ class SpecValidatedConfig(CompositeConfig):
         return value
 
     def __iter__(self):
-        return (key for key in self.SPEC.settings if self.SPEC.validate_setting(self, key))
+        return (key for key in self.SPEC.settings)
 
     def __len__(self):
         return len(list(self.__iter__()))
