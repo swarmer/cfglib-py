@@ -27,14 +27,17 @@ __all__ = [
 def to_cfg(value: Any) -> Config:
     if isinstance(value, Config):
         return value
-    elif isinstance(value, Mapping):
+    elif isinstance(value, collections.abc.Mapping):
         return ProxyConfig(value)
     else:
         raise TypeError(f'Cannot convert to config: {value}')
 
 
 def to_cfg_list(value: Any) -> List[Config]:
-    if not isinstance(value, collections.abc.Collection) or isinstance(value, Mapping):
+    if (
+        not isinstance(value, collections.abc.Collection)
+        or isinstance(value, collections.abc.Mapping)
+    ):
         value = [value]
 
     return [to_cfg(item) for item in value]

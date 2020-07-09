@@ -1,6 +1,7 @@
 # pylint: disable=empty-docstring
 from __future__ import annotations
 
+import collections.abc
 import enum
 from typing import *
 
@@ -233,7 +234,7 @@ class DictSetting(Setting):
 
     def validate_value_custom(self, value: Any) -> Optional[Mapping]:
         """"""  # Remove the parent's docstring about overriding
-        if not isinstance(value, Mapping):
+        if not isinstance(value, collections.abc.Mapping):
             raise ValidationError(f'A value for setting {self.name} must be a mapping')
 
         if isinstance(self.subtype, ConfigSpec):
